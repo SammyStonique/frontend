@@ -1,6 +1,6 @@
 <template>
-  <div class="about">
-    <h1>The About Page</h1>
+  <div class="contacts">
+    <h1>The Contacts Page</h1>
   </div>
 </template>
 
