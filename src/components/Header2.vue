@@ -16,7 +16,11 @@
             Signin
           </button></router-link
         >
-        <button class="bg-green-500 p-1 pl-5 pr-5 rounded">Signout</button>
+        <router-link to="/register"
+          ><button class="bg-green-500 p-1 pl-5 pr-5 rounded">
+            Register
+          </button></router-link
+        >
       </div>
     </div>
   </nav>

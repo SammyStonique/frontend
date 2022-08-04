@@ -38,7 +38,7 @@
         <div class="container text-left">
           <small
             >Don't have an account?
-            <router-link to="" class="underline hover:text-white">
+            <router-link to="/register" class="underline hover:text-white">
               SIGN UP</router-link
             ></small
           >
