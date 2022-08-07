@@ -6,6 +6,7 @@ import LoginView from '../views/LoginView.vue'
 import ContactsView from '../views/ContactsView.vue'
 import PricingView from '../views/PricingView.vue'
 import RegisterView from '../views/RegisterView.vue'
+import MusicPlayer from '../views/MusicPlayer.vue'
 
 const routes = [
   {
@@ -42,6 +43,11 @@ const routes = [
     path: '/register',
     name: 'register',
     component: RegisterView
+  },
+  {
+    path: '/music-player',
+    name: 'music-player',
+    component: MusicPlayer
   },
   
 ]

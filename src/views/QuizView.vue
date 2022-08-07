@@ -1,7 +1,10 @@
 <template>
-  <div class="about grid place-items-center h-screen">
+  <div class="about grid place-items-center h-screen dark:bg-slate-900 dark:text-white">
     <!-- QUESTION 1 -->
-    <div class="container border-8 border-teal-600 m-auto w-1/2" v-if="showDiv1">
+    <div
+      class="container border-8 border-teal-600 m-auto w-1/2 dark:bg-slate-700"
+      v-if="showDiv1"
+    >
       <div class="rounded p-5">
         <QuizBox
           :page="1"
