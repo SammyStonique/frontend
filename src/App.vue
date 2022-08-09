@@ -7,6 +7,24 @@
 
 <script>
 import Header2 from "./components/Header2.vue";
-export default { components: { Header2 } };
+import axios from "axios";
+export default {
+  components: { Header2 },
+  methods: {
+    fetchAnything() {
+      this.axios
+        .get("https://api.chucknorris.io/jokes/random")
+        .then((response) => {
+          console.log(response.data);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+  },
+  mounted() {
+    // this.fetchAnything();
+  },
+};
 </script>
 <style lang="scss"></style>

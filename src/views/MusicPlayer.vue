@@ -7,8 +7,8 @@
       <div class="border-2 rounded-3xl bg-black m-auto w-40 mb-4">
         <img class="-z-10 rounded-3xl h-40" src="@/assets/main-h.jpeg" alt="Headphones" />
       </div>
-      <h2 class="text-2xl text-center">{{ songs[songIndex].title }}</h2>
-      <h3 class="font-700 text-center">{{ songs[songIndex].artist }}</h3>
+      <h2 class="text-2xl text-center">{{ current.title }}</h2>
+      <h3 class="font-700 text-center">{{ current.artist }}</h3>
       <div class="flex flex-row justify-center m-auto w-1/2 mt-5">
         <div class="basis-1/3 m-auto h-1/2 text-center">
           <button class="" @click="prevMusic()">
@@ -38,31 +38,53 @@
           <i class="fa fa-volume-up" aria-hidden="true"></i>
         </button>
       </div>
-      <div class="bg-gray-200 p-5 text-center">
+      <div class="p-5 text-center">
         <button
-          @click="spotifyLogin"
-          class="bg-green-600 text-white rounded m-auto w-1/2 h-8"
+          @click="fetchPlaylist"
+          class="bg-black text-white rounded m-auto w-1/2 h-8"
         >
           Spotify
         </button>
+        <div class="text-center m-auto w-1/2 mt-3" v-if="openSpotifyPlaylist">
+          <h5 class="text-center mb-2">Your available Spotify Playlists</h5>
+          <button
+            class="rounded m-auto w-1/2 h-6 bg-green-500 text-white"
+            @click="fetchPlaylistTrack"
+          >
+            {{ myPlaylist }}
+          </button>
+          <div v-for="song in trackList" class="text-center">
+            <button
+              class="h-10 w-full m-auto"
+              :class="song.track == current.track ? 'playing-song' : 'song'"
+              @click="playSpotifyMusic(song)"
+            >
+              {{ song.track.name }} - {{ song.track.artists[0].name }}
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="bg-gray-200 text-center pb-2">
+      <div class="text-center pb-2">
         <button
           v-if="!showPl"
-          class="bg-green-500 text-white m-auto w-1/2 rounded h-8"
+          class="bg-black text-white m-auto w-1/2 rounded h-8"
           @click="showPlaylist"
         >
           View PlayList
         </button>
         <button
           v-else
-          class="bg-green-500 text-white m-auto w-1/2 rounded h-8"
+          class="bg-black text-white m-auto w-1/2 rounded h-8"
           @click="hidePlaylist"
         >
           Hide PlayList
         </button>
         <div class="playlist mt-3" v-for="song in songs" :key="index" v-if="showPl">
-          <button class="bg-gray-400 h-10 w-4/6 m-auto" @click="playSelectedMusic(song)">
+          <button
+            class="h-10 w-4/6 m-auto"
+            :class="song.src == current.src ? 'playing-song' : 'song'"
+            @click="playSelectedMusic(song)"
+          >
             {{ song.title }} - {{ song.artist }}
           </button>
         </div>
@@ -87,6 +109,7 @@ export default {
       musicPlayer: new Audio(),
       musicSrc: require("@/assets/audio1.mp3"),
       isPlaying: false,
+      current: {},
       songIndex: 0,
       index: 0,
       songLength: 0,
@@ -179,15 +202,20 @@ export default {
         },
       ],
       clientID: "a1797d9e63ae49928b4c14aff66a412a",
+      clientSecret: "7499b9bc0275417389a7875194ece12f",
       redirectURL: "http://localhost:8080/music-player",
-      scope: "user-read-private user-read-email",
-      state: "bqfuiriwferhvhro",
+      access_token: [],
+      user_id: "31tu4cv5etdsb6ppaoymtvb4vt3q",
+      playlistId: "5jdItWZgAjo75TzZaBKsVJ?si=603881356f4843c1",
+      myPlaylist: "",
+      openSpotifyPlaylist: false,
+      trackList: [],
     };
   },
   created() {
     this.isPlaying = false;
-    this.musicPlayer.src = this.songs[this.songIndex].src;
-    console.log("music src is ", this.musicPlayer.src);
+    this.current = this.songs[this.songIndex];
+    this.musicPlayer.src = this.current.src;
     // this.musicPlayer.play();
   },
   methods: {
@@ -207,7 +235,8 @@ export default {
     playSelectedMusic(song) {
       // let selectedSong = arguments[0];
       if (typeof song.src != "undefined") {
-        this.musicPlayer.src = song.src;
+        this.current = song;
+        this.musicPlayer.src = this.current.src;
       }
       this.musicPlayer.play();
       this.isPlaying = true;
@@ -220,10 +249,26 @@ export default {
           this.musicPlayer.play();
         }.bind(this)
       );
-      // console.log("selected song is ", this.songs[selectedSong].title);
-      // this.songs[selectedSong].artist = song.artist;
-      // console.log("selected artist is ", this.songs[selectedSong].artist);
-      // this.songs[selectedSong].title = song.title;
+    },
+    playSpotifyMusic(song) {
+      // let selectedSong = arguments[0];
+      if (typeof song.track.preview_url != "undefined") {
+        this.current = song.track;
+        console.log("the current song is ", this.current);
+        this.musicPlayer.src = this.current.preview_url;
+      }
+      this.musicPlayer.play();
+      console.log("Muziki kasumbua");
+      this.isPlaying = true;
+      this.musicPlayer.addEventListener(
+        "ended",
+        function () {
+          this.songIndex++;
+          this.isPlaying = true;
+          this.musicPlayer.src = this.songs[this.songIndex].src;
+          this.musicPlayer.play();
+        }.bind(this)
+      );
     },
     pauseMusic() {
       this.isPlaying = false;
@@ -234,27 +279,31 @@ export default {
       if (this.songIndex == this.songs.length - 1) {
         this.songIndex = 0;
         this.isPlaying = true;
-        this.musicPlayer.src = this.songs[this.songIndex].src;
-        this.musicPlayer.play();
+        this.current = this.songs[this.songIndex];
+        this.musicPlayer.src = this.current.src;
+        this.playSelectedMusic(this.current);
       } else {
         this.songIndex += 1;
         this.isPlaying = true;
-        this.musicPlayer.src = this.songs[this.songIndex].src;
-        this.musicPlayer.play();
+        this.current = this.songs[this.songIndex];
+        this.musicPlayer.src = this.current.src;
+        this.playSelectedMusic(this.current);
       }
     },
     prevMusic() {
       if (this.songIndex > 0) {
         this.songIndex -= 1;
         this.isPlaying = true;
-        this.musicPlayer.src = this.songs[this.songIndex].src;
-        this.musicPlayer.play();
+        this.current = this.songs[this.songIndex];
+        this.musicPlayer.src = this.current.src;
+        this.playSelectedMusic(this.current);
       } else {
         this.songIndex = this.songs.length - 1;
         console.log("the new index is ", this.songIndex);
         this.isPlaying = true;
-        this.musicPlayer.src = this.songs[this.songIndex].src;
-        this.musicPlayer.play();
+        this.current = this.songs[this.songIndex];
+        this.musicPlayer.src = this.current.src;
+        this.playSelectedMusic(this.current);
       }
     },
     unmute() {
@@ -269,24 +318,90 @@ export default {
     hidePlaylist() {
       this.showPl = false;
     },
-    spotifyLogin() {
-      this.axios
-        .get("https://api.spotify.com/v1/login", {
-          client_id: this.clientID,
-          response_type: "code",
-          scope: this.scope,
-          redirect_uri: this.redirectURL,
-          state: this.state,
-        })
+    async fetchPlaylist() {
+      this.openSpotifyPlaylist = true;
+      let token =
+        "BQAT0dR9rY1Q_ph0KORZeDVnP8H_zB-FatdmtsGkmn2bliYltL__i87egA-1YgwegfPU0mzceYzRFBeeRjSiuSzTqV9P4RKZLRpp772j8w8nBW2i3dA";
+      const config = {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      };
+      await this.axios
+        .get(`https://api.spotify.com/v1/users/${this.user_id}/playlists`, config)
         .then((response) => {
-          console.log(response.data);
+          console.log(response.data.items[0].name);
+          this.myPlaylist = response.data.items[0].name;
         })
         .catch((error) => {
           console.log(error);
         });
     },
+    async fetchPlaylistTrack() {
+      let token =
+        "BQAT0dR9rY1Q_ph0KORZeDVnP8H_zB-FatdmtsGkmn2bliYltL__i87egA-1YgwegfPU0mzceYzRFBeeRjSiuSzTqV9P4RKZLRpp772j8w8nBW2i3dA";
+      const config = {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      };
+      await this.axios
+        .get(`https://api.spotify.com/v1/playlists/${this.playlistId}/tracks`, config)
+        .then((response) => {
+          console.log("tracks data is ", response.data.tracks.items[0].track.href);
+          this.trackList = response.data.tracks.items;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    async spotifyFetch() {
+      let encodedString = window.btoa(this.clientID + ":" + this.clientSecret);
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: "Basic " + encodedString,
+        },
+        body: "grant_type=client_credentials",
+      };
+      const result = await fetch("https://accounts.spotify.com/api/token", requestOptions)
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("The access token is " + data.body["access_token"]);
+        });
+      // const data = result.json();
+
+      this.access_token.push(data);
+      // return data.access_token;
+    },
+    getToken() {
+      this.spotifyFetch();
+      console.log("kabisa kaka ", this.access_token);
+    },
+  },
+  mounted() {
+    // this.getToken();
+    // this.spotifyFetch();
   },
 };
 </script>
 
-<style></style>
+<style scoped>
+.playing-song {
+  background-color: crimson;
+  color: white;
+}
+.playing-song:hover {
+  opacity: 0.7;
+}
+.song {
+  background-color: none;
+  outline: none;
+  border: none;
+  color: crimson;
+}
+.song:hover {
+  color: white;
+}
+</style>
